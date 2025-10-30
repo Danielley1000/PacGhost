@@ -4,6 +4,8 @@ import math
 import threading
 pygame.init()
 
+#By DanielleY1000
+
 
 #general veriables
 WID = 900
