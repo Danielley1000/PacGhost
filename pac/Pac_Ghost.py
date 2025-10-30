@@ -1,7 +1,6 @@
 import pygame
 from Boards import boards
 import math
-import threading
 pygame.init()
 
 #By DanielleY1000
@@ -27,7 +26,13 @@ dirCom = 0
 #level veriables 
 levelOne = boards[0]
 levelTwo = boards[1]
+openScreen = True
 
+#logo images 
+logoImages = []
+for i in range(1,7):
+    logoImages.append(pygame.transform.scale(pygame.image.load(f'logo/logo{i}.png'), (800,600))) #pick size
+imageCount = 0
 
 #player image veriables 
 playerImages = []
@@ -56,6 +61,13 @@ def drawStuff():
     for i in range(lives):
         screen.blit(pygame.transform.scale(playerRight[2], (tileWid, tileHigh)), (WID - (i+1)*(tileWid +10), 920))
     
+def drawLogo():
+    frameSpeed = 8
+    frameCount = len(logoImages)
+    f = (imageCount // frameSpeed) % frameCount  
+
+    logo = logoImages[f]
+    screen.blit(logo, (50,0))
 
 # make dots? also make and not flicker
 def drawBoard(lvl):
@@ -97,11 +109,7 @@ def drawPlayer():
     rect = image.get_rect(center=(playerXPos + tileWid // 2, playerYPos + tileHigh // 2))
     screen.blit(image, rect.topleft)
 
-def waitTillCenter(center, time):
-    while center != tileWid/2:
-        time+=1
-        if time>600:
-            break
+
     
 def checkPos(centerX, centerY): # go over
     turnsAllowed = [False, False, False, False] #R, L, U, D #tileHigh, tileWid 
@@ -110,51 +118,39 @@ def checkPos(centerX, centerY): # go over
     if centerX //tileWid<29: 
         if dir == 0: #<1 ie 0, which is the empty tile. if changing tiles, change/replace range 
             if levelOne[centerY//tileHigh][(centerX-num)//tileWid] < 3: #multipule levels? 
-                waitTillCenter(centerX, time)
                 turnsAllowed[1] = True #left turn allowd
         if dir == 1:
             if levelOne[centerY//tileHigh][(centerX+num)//tileWid] < 3: #multipule levels? 
-                waitTillCenter(centerX, time)
                 turnsAllowed[0] = True #right turn allowed 
         if dir == 2: 
             if levelOne[(centerY+num)//tileHigh][centerX//tileWid] < 3: #multipule levels? 
-                waitTillCenter(centerY, time)
                 turnsAllowed[3] = True #down turn allowed
         if dir == 3: 
             if levelOne[(centerY-num)//tileHigh][centerX//tileWid] < 3: #multipule levels? 
-                waitTillCenter(centerY, time)
                 turnsAllowed[2] = True 
                 
         if dir == 2 or dir == 3: #up or down 
             if 12<= centerX % tileWid <=18:
                 if levelOne[(centerY+num)//tileHigh][centerX//tileWid] <3: # multipule levels?
-                    waitTillCenter(centerY, time)
                     turnsAllowed[3] = True 
                 if levelOne[(centerY-num)//tileHigh][centerX//tileWid] <3: # multipule levels? 
-                    waitTillCenter(centerY, time)
                     turnsAllowed[2] = True 
             if 12<= centerY % tileHigh <=18: 
                 if levelOne[centerY//tileHigh][(centerX-tileWid)//tileWid] <3: # multipule levels? 
-                    waitTillCenter(centerX, time)
                     turnsAllowed[1] = True 
                 if levelOne[centerY//tileHigh][(centerX+tileWid)//tileWid] <3: # multipule levels? 
-                    waitTillCenter(centerX, time)
                     turnsAllowed[0] = True 
                     
         if dir == 0 or dir == 1: #left or right 
             if 12<= centerX % tileWid <=18: 
                 if levelOne[(centerY+tileHigh)//tileHigh][centerX//tileWid] <3: # multipule levels? 
-                    waitTillCenter(centerX, time)
                     turnsAllowed[3] = True 
                 if levelOne[(centerY-tileHigh)//tileHigh][centerX//tileWid] <3: # multipule levels? 
-                    waitTillCenter(centerX, time)
                     turnsAllowed[2] = True 
             if 12<= centerY % tileHigh <=18: 
                 if levelOne[centerY//tileHigh][(centerX-num)//tileWid] <3: # multipule levels? 
-                    waitTillCenter(centerY, time)
                     turnsAllowed[1] = True 
                 if levelOne[centerY//tileHigh][(centerX+num)//tileWid] <3: # multipule levels?
-                    waitTillCenter(centerY, time)
                     turnsAllowed[0] = True 
     else: 
         turnsAllowed[0] = True 
@@ -185,6 +181,8 @@ def playerMove(playX, playY): #R,L,U,D
     return playX, playY 
     
 while run:
+    screen.fill('pink')
+
     timer.tick(fps)
     
     if count<19:
@@ -206,15 +204,38 @@ while run:
     
     
     
+    while openScreen:
+        timer.tick(fps)
+        screen.fill('pink')
+        drawLogo()
+        imageCount +=1
+        if imageCount > 29:
+            imageCount = 0
+        
+        start = pygame.font.SysFont('Rubik Bold', 50)
+        start = start.render(f'Press SPACE to start', True, 'black')
+        textRect = start.get_rect(center=(WID // 2, HIGH // 2))
+        screen.blit(start, textRect)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: #to quit the game 
+                openScreen = False
+                run = False
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    openScreen = False
+        pygame.display.flip() 
     
-    screen.fill('pink')
+    
     drawBoard(levelOne) # for multipule levels? // boards[i]
     drawPlayer()
     drawStuff()
+        
     playerCenterX = (playerXPos + tileWid // 2)
     playerCenterY = (playerYPos + tileHigh // 2)
     
     validTurns = checkPos(playerCenterX, playerCenterY)
+    
     if moving:
         playerXPos, playerYPos = playerMove(playerXPos, playerYPos)
     energy = checkCollision(energy)
@@ -246,6 +267,7 @@ while run:
         if dirCom == i and validTurns[i]:
             dir = i
         
+    
         if playerXPos>WID:
             playerXPos = -47
         elif playerXPos<-47:
