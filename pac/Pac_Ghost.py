@@ -31,13 +31,17 @@ openScreen = True
 #logo images 
 logoImages = []
 for i in range(1,7):
-    logoImages.append(pygame.transform.scale(pygame.image.load(f'logo/logo{i}.png'), (800,600))) #pick size
+    logoImages.append(pygame.transform.scale(pygame.image.load(f'images/logo/logo{i}.png'), (800,600))) #pick size
 imageCount = 0
+countImages = []
+
+for i in range(1,4):
+    countImages.append(pygame.transform.scale(pygame.image.load(f'images/countDownNums/count{i}.png'), (400,400))) #pick size
 
 #player image veriables 
 playerImages = []
 for i in range(1,7):
-    playerImages.append(pygame.transform.scale(pygame.image.load(f'playerImages/{i}.png'), (2*tileWid,2*tileHigh))) #pick size
+    playerImages.append(pygame.transform.scale(pygame.image.load(f'images/playerImages/{i}.png'), (2*tileWid,2*tileHigh))) #pick size
 
 playerRight = [img for img in playerImages]
 playerLeft  = [pygame.transform.flip(img, True, False) for img in playerImages]
@@ -195,14 +199,13 @@ while run:
     
     if startCounter <120:
         moving = False
+
         startCounter +=1
     else:
         moving = True
         
         if energy >10:
             energy -=1
-    
-    
     
     while openScreen:
         timer.tick(fps)
@@ -230,7 +233,18 @@ while run:
     drawBoard(levelOne) # for multipule levels? // boards[i]
     drawPlayer()
     drawStuff()
+    
+    if startCounter <120:
+        moving = False
         
+        if startCounter <40:
+            screen.blit(countImages[0], (250,300))
+        elif startCounter <80:
+            screen.blit(countImages[1], (250,300))
+        else:
+            screen.blit(countImages[2], (250,300))
+        
+
     playerCenterX = (playerXPos + tileWid // 2)
     playerCenterY = (playerYPos + tileHigh // 2)
     
@@ -263,6 +277,7 @@ while run:
                 dirCom = dir
             if event.key == pygame.K_RIGHT and dirCom == 0:
                 dirCom = dir
+                
     for i in range(4):
         if dirCom == i and validTurns[i]:
             dir = i
